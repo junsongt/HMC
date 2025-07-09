@@ -41,7 +41,7 @@ By the fundamental lemma of calculus of variation, since $\vect{u}(x)$ is arbitr
 \begin{equation}
 \pd{f}{\vect{y}} - \frac{d}{dx}\pd{f}{\vect{y}'} = 0 \label{eqn:Euler_Lagrangian}
 \end{equation}
-Equation (\ref{eqn:Euler_Lagrangian}) is called the \textbf{Euler--Lagrangian Equation} in calculus of variation, and for $\vect{y}$ satisfying Equation (\ref{eqn:Euler_Lagrangian}) is a sufficient condition for $F[\vect{y}]$ to have its local min.
+Equation (\ref{eqn:Euler_Lagrangian}) is called the \textbf{Euler--Lagrangian Equation} in calculus of variation, and for $\vect{y}$ satisfying equation (\ref{eqn:Euler_Lagrangian}) is a sufficient condition for $F[\vect{y}]$ to have its local min.
 
 In a dynamical system, with Lagrangian $\Lcal(t, \vect{q}, \dot{\vect{q}})$, we replace $f$ with $\Lcal$, $\vect{y}$ with generalized coordiantes $\vect{q}$, and $x$ with time $t$, we get the \textbf{Lagrangian Equation} for dynamical system:
 \begin{equation}
@@ -49,6 +49,17 @@ In a dynamical system, with Lagrangian $\Lcal(t, \vect{q}, \dot{\vect{q}})$, we 
 \end{equation}
 
 \section{Legendre Transform}
+If $f: \Xcal \to \R$ is convex, then $\forall t \in X$, then $f(t) \geq pt + b$, where $p = f'(x)$ and $b = f(x) - px$. This implies that:
+\[pt - f(t) \leq px -f(x), \forall t \in \Xcal\]
+Then the one-dimensional Legendre transform is defined as: 
+\[f^*(p) = px - f(x) = \sup\{pt - f(t) : t \in \Xcal\}\]
+
+If $\Xcal \subset \R^n$, then the generalized Legendre tranform is defined as:
+\[f^*(\vect{p}) = \vect{p} \cdot \vect{x} - f(\vect{x})\]where $\vect{p} \cdot \vect{x} = \vect{p}^{\top} \vect{x}$ representing the inner product. 
+
+Note that $f^*$ is also a convex function, since given a $t \in \Xcal$, the map $p \mapsto pt -f(t)$ is linear, hence the supremum of the family of linear maps: $\{p \mapsto pt-f(t)\}_{t \in \Xcal}$ gives an envolope, which is $f^*$. On the other hand, one can show:
+\[f(x) = \sup\{px - f^*(p) : p \in \Xcal^*\}\]
+which means that $f(x)$ is the envolope of the family of linear maps: $\{x \mapsto px - f^*(p)\}_{p \in \Xcal^*}$. 
 
 
 
@@ -60,7 +71,7 @@ Hamiltonian is the Legendre transform of Lagrangian, hence we have:
 Since $\vect{p}\cdot \dot{\vect{q}} = 2T$, so $\Hcal(\vect{q}, \vect{p}) = 2T - (T - V) = T + V$ and hence Hamiltonian can be interpreted as the total energy of a dynamical system.
 
 
-We can derive Hamiltonian equations from Lagrange eqaution. Note that:\[\pd{\Lcal}{\dot{\vect{q}}} = M\dot{\vect{q}} = \dot{\vect{p}} \quad \text{and} \quad \pd{\Lcal}{\vect{q}} = \frac{d}{dt}\pd{\Lcal}{\dot{\vect{q}}} = \dot{\vect{p}}\]
+We can derive Hamiltonian equations from Lagrange eqaution. Note that:\[\pd{\Lcal}{\dot{\vect{q}}} = M\cdot\dot{\vect{q}} = \vect{p} \quad \text{and} \quad \pd{\Lcal}{\vect{q}} = \frac{d}{dt}\pd{\Lcal}{\dot{\vect{q}}} = \dot{\vect{p}}\]
 so with (\ref{eqn:Hamiltonian}), we must have:
 \begin{align}
 & \pd{\Hcal}{\vect{p}} = \dot{\vect{q}} \label{eqn:Hamiltonian_equation1}\\
