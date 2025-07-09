@@ -1,0 +1,82 @@
+\documentclass[hidelinks]{article}[12pt]
+% \documentclass{article}
+\input{macros/typesetting-macros}  % DO NOT CHANGE
+\input{macros/basic-math-macros} 
+
+
+
+
+\title{\bf Notes on Hamiltonian Monte Carlo}
+\author{Junsong Tang}
+\date{\today}
+
+\setlength\parindent{0pt}
+\frenchspacing
+\begin{document}
+\maketitle
+
+\section{Notations}
+\begin{itemize}
+    \item $\vect{q} = (q_1, \ldots, q_n)$: generalized coordinates
+    \item $\dot{\vect{q}} = (\dot{q_1}, \ldots, \dot{q_n})$: generalized velocity
+    \item $\Lcal(t, q, \dot{q}) = T - V = \frac12 M \norm{\dot{q}}^2 - V(q) $: Lagrangian, where $M$ is the mass matrix, $T$ is kinetic energy and $V$ is potential energy
+    \item $\vect{p}$: generalized momentum, i.e.,\ $\vect{p} = M \cdot \dot{\vect{q}}$
+\end{itemize}
+
+
+\section{Euler--Lagrange Equation}
+Generalized version: given a funtion $\vect{y}(x)$ and its derivative: $\vect{y}'(x)$ and $f(x, \vect{y}, \vect{y}')$. Define the functional:
+\begin{equation}
+F[\vect{y}] = \int_a^b f(x, \vect{y}, \vect{y}') dx \label{eqn:functional}
+\end{equation}
+As the topic in calculus of variation, we want the functional $F[\vect{y}]$ to obtain its local min for some function $\vect{y}$. Perturbate $\vect{y}(x)$ with $\vect{y}(x) + \eps \vect{u}(x)$ for any function $\vect{u}$ and $\eps \in \R$ with small enough $\abs{\eps}$. and put \[g(\eps) = \int_a^b f(x, \vect{y + \eps u}, (\vect{y + \eps u})') dx\]
+To make $F[\vect{y}]$ obtaining its local min for some $\vect{y}$ satisfying the initial conditions: $\vect{y}(a)$ and $\vect{y}(b)$ being fixed, i.e.,\ $\vect{u}(a) = \vect{u}(b) = 0$, it is equivalent to require $g'(0) = 0$, hence:
+\begin{align*}
+& g'(0) = \frac{d}{d\eps}\Big(\int_a^b f(x, \vect{y + \eps u}, (\vect{y + \eps u})') dx\Big)\\
+& = \int_a^b \Big(\pd{f}{\vect{y}}\vect{u} + \pd{f}{\vect{y}'}\vect{u}' \Big)dx \quad \text{By total derivative}\\
+& = \int_a^b \vect{u} \pd{f}{\vect{y}}  dx + \pd{f}{\vect{y}'}\vect{u} \vert_a^b - \int_a^b \vect{u} \frac{d}{dx}\big(\pd{f}{\vect{y}'}\big) dx \quad \text{integration by parts}\\
+& = \int_a^b \vect{u} \Big(\pd{f}{\vect{y}} - \frac{d}{dx}\pd{f}{\vect{y}'}\Big) dx = 0 \quad \text{By initial condition:} ~ \vect{u}(a) = \vect{u}(b) = 0
+\end{align*}
+By the fundamental lemma of calculus of variation, since $\vect{u}(x)$ is arbitrary, hence we must have:
+\begin{equation}
+\pd{f}{\vect{y}} - \frac{d}{dx}\pd{f}{\vect{y}'} = 0 \label{eqn:Euler_Lagrangian}
+\end{equation}
+Equation (\ref{eqn:Euler_Lagrangian}) is called the \textbf{Euler--Lagrangian Equation} in calculus of variation, and for $\vect{y}$ satisfying Equation (\ref{eqn:Euler_Lagrangian}) is a sufficient condition for $F[\vect{y}]$ to have its local min.
+
+In a dynamical system, with Lagrangian $\Lcal(t, \vect{q}, \dot{\vect{q}})$, we replace $f$ with $\Lcal$, $\vect{y}$ with generalized coordiantes $\vect{q}$, and $x$ with time $t$, we get the \textbf{Lagrangian Equation} for dynamical system:
+\begin{equation}
+\pd{\Lcal}{\vect{q}} - \frac{d}{dt}\pd{\Lcal}{\dot{\vect{q}}} = 0 \label{eqn:Lagrangian} 
+\end{equation}
+
+\section{Legendre Transform}
+
+
+
+\section{Hamiltonian Equation}
+Hamiltonian is the Legendre transform of Lagrangian, hence we have:
+\begin{equation}
+\Hcal(\vect{q}, \vect{p}) = \vect{p} \cdot \dot{\vect{q}} - \Lcal(t, \vect{q}, \dot{\vect{q}}) \label{eqn:Hamiltonian}
+\end{equation}
+Since $\vect{p}\cdot \dot{\vect{q}} = 2T$, so $\Hcal(\vect{q}, \vect{p}) = 2T - (T - V) = T + V$ and hence Hamiltonian can be interpreted as the total energy of a dynamical system.
+
+
+We can derive Hamiltonian equations from Lagrange eqaution. Note that:\[\pd{\Lcal}{\dot{\vect{q}}} = M\dot{\vect{q}} = \dot{\vect{p}} \quad \text{and} \quad \pd{\Lcal}{\vect{q}} = \frac{d}{dt}\pd{\Lcal}{\dot{\vect{q}}} = \dot{\vect{p}}\]
+so with (\ref{eqn:Hamiltonian}), we must have:
+\begin{align}
+& \pd{\Hcal}{\vect{p}} = \dot{\vect{q}} \label{eqn:Hamiltonian_equation1}\\
+& \pd{\Hcal}{\vect{q}} = -\pd{\Lcal}{q} = - \dot{\vect{p}} \label{eqn:Hamiltonian_equation2}
+\end{align}
+(\ref{eqn:Hamiltonian_equation1}) and (\ref{eqn:Hamiltonian_equation2}) are called \textbf{Hamiltonian equations}
+
+Or equivalently, we can take the total differentiation on both sides of (\ref{eqn:Hamiltonian}):
+\begin{align*}
+& d\Hcal = d(\vect{p}\cdot \dot{\vect{q}}) - d\Lcal(t, \vect{q}, \dot{\vect{q}})\\
+& = \dot{\vect{q}}\cdot d\vect{p} + \vect{p} \cdot d\dot{\vect{q}} - \pd{\Lcal}{\vect{q}}d\vect{q} - \pd{\Lcal}{\dot{\vect{q}}}d\dot{\vect{q}} - \pd{\Lcal}{t}dt\\
+& = \dot{\vect{q}}\cdot d\vect{p} - \pd{\Lcal}{\vect{q}}d\vect{q} - \pd{\Lcal}{t}dt\\
+& = \pd{\Hcal}{\vect{p}}d\vect{p} + \pd{\Hcal}{\vect{q}} d\vect{q} + \pd{\Hcal}{t}dt
+\end{align*}
+Hence we can correspond the coefficients to get (\ref{eqn:Hamiltonian_equation1}) and (\ref{eqn:Hamiltonian_equation2}).
+
+\section{Hamiltonian Monte Carlo}
+
+\end{document}

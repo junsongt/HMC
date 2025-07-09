@@ -1,0 +1,20 @@
+# main.pdf
+# main.synctex.gz
+# manuscript/main.aux
+# manuscript/main.bbl
+# manuscript/main.blg
+# manuscript/main.fdb_latexmk
+# manuscript/main.fls
+# manuscript/main.log
+# manuscript/main.out
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.pdf
+*.synctex.gz
+*.coverage
+*.npz

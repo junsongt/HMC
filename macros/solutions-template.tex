@@ -1,0 +1,40 @@
+\usepackage{verbatim}
+\usepackage{titlesec}
+
+\def\coursename{STAT 460/560: Stat.~Inf.~1}
+\def\semester{Fall 2024}
+
+\setlength{\oddsidemargin}{0.0 in}
+\setlength{\evensidemargin}{0.0 in} 
+\setlength{\topmargin}{-0.6 in} 
+\setlength{\textwidth}{6.5 in} 
+\setlength{\textheight}{8.5 in}
+\setlength{\headsep}{0.75 in} 
+\setlength{\parindent}{0 in}
+\setlength{\parskip}{0.1 in}
+
+\titleformat*{\section}{\Large\bfseries}
+
+
+% prints box at top of first page with relevant info
+\newcommand{\problemset}[3]{
+   \pagestyle{myheadings}
+   \thispagestyle{plain}
+   \newpage
+   \noindent
+   \begin{center}
+   \framebox{
+      \vbox{\vspace{2mm}
+    \hbox to 6.28in { {\bf \coursename
+                        \hfill \semester} }
+       \vspace{4mm}
+       \hbox to 6.28in { {\Large \hfill #3  \hfill} }
+       \vspace{2mm}
+       \hbox to 6.28in { {\it #1 \hfill \texttt{#2}} }
+      \vspace{2mm}}
+   }
+   \end{center}
+   \vspace*{4mm}
+}
+
+\newcommand{\qsol}[1]{\section{#1}}
