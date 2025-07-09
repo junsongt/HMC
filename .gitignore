@@ -14,7 +14,6 @@
 *.fls
 *.log
 *.out
-*.pdf
 *.synctex.gz
 *.coverage
 *.npz
