@@ -21,7 +21,7 @@
 \begin{itemize}
     \item $\vect{q} = (q_1, \ldots, q_n)$: generalized coordinates
     \item $\dot{\vect{q}} = (\dot{q_1}, \ldots, \dot{q_n})$: generalized velocity
-    \item $\Lcal(t, q, \dot{q}) = T - V = \frac12 M \norm{\dot{q}}^2 - V(q) $: Lagrangian, where $M$ is the mass matrix, $T$ is kinetic energy and $V$ is potential energy
+    \item $\Lcal(t, \vect{q}, \dot{\vect{q}}) = K - U = \frac12 \dot{\vect{q}}^\top M \dot{\vect{q}} - U(\vect{q})$: Lagrangian, where $M$ is the mass matrix, $K$ is kinetic energy and $U$ is potential energy
     \item $\vect{p}$: generalized momentum, i.e.,\ $\vect{p} = M \cdot \dot{\vect{q}}$
 \end{itemize}
 
@@ -71,14 +71,21 @@ Hamiltonian is the Legendre transform of Lagrangian, hence we have:
 \begin{equation}
 \Hcal(\vect{q}, \vect{p}) = \vect{p} \cdot \dot{\vect{q}} - \Lcal(t, \vect{q}, \dot{\vect{q}}) \label{eqn:Hamiltonian}
 \end{equation}
-Since $\vect{p}\cdot \dot{\vect{q}} = 2T$, so $\Hcal(\vect{q}, \vect{p}) = 2T - (T - V) = T + V$ and hence Hamiltonian can be interpreted as the total energy of a dynamical system.
+Since $\vect{p}\cdot \dot{\vect{q}} = 2K$, so $\Hcal(\vect{q}, \vect{p}) = 2K - (K - U) = K + U$ and hence Hamiltonian can be interpreted as the total energy of a dynamical system. So (\ref{eqn:Hamiltonian}) can also be written as:
+\begin{equation}
+\Hcal(\vect{q}, \vect{p}) = \frac12 \dot{\vect{q}}^\top M \dot{\vect{q}} + U(\vect{q}) = \frac12 \vect{p}^\top M^{-1} \vect{p} + U(\vect{q}) \label{eqn:Hamiltonian_2}
+\end{equation}
 
 
-We can derive Hamiltonian equations from Lagrange eqaution. Note that:\[\pd{\Lcal}{\dot{\vect{q}}} = M\cdot\dot{\vect{q}} = \vect{p} \quad \text{and} \quad \pd{\Lcal}{\vect{q}} = \frac{d}{dt}\pd{\Lcal}{\dot{\vect{q}}} = \dot{\vect{p}}\]
-so with (\ref{eqn:Hamiltonian}), we must have:
+We can derive Hamiltonian equations from Lagrange eqaution in (\ref{eqn:Lagrangian}). 
+
+Note that by $\Lcal(t, \vect{q}, \dot{\vect{q}}) = \frac12 \dot{\vect{q}}^\top M \dot{\vect{q}} - U(\vect{q})$, we have:
+\[\pd{\Lcal}{\dot{\vect{q}}} = M\cdot\dot{\vect{q}} = \vect{p} \quad \text{and by (\ref{eqn:Lagrangian})} \quad \pd{\Lcal}{\vect{q}} = \frac{d}{dt}\pd{\Lcal}{\dot{\vect{q}}} = \dot{\vect{p}}\]
+
+so with (\ref{eqn:Hamiltonian}) and (\ref{eqn:Hamiltonian_2}), we have:
 \begin{align}
-& \pd{\Hcal}{\vect{p}} = \dot{\vect{q}} \label{eqn:Hamiltonian_equation1}\\
-& \pd{\Hcal}{\vect{q}} = -\pd{\Lcal}{q} = - \dot{\vect{p}} \label{eqn:Hamiltonian_equation2}
+& \pd{\Hcal}{\vect{p}} = \dot{\vect{q}} \quad \text{and} \quad \pd{\Hcal}{\vect{p}} = M^{-1} \vect{p} \quad \label{eqn:Hamiltonian_equation1}\\
+& \pd{\Hcal}{\vect{q}} = -\pd{\Lcal}{q} = - \dot{\vect{p}} \quad \text{and} \quad \pd{\Hcal}{\vect{q}} = \nabla_{\vect{q}} U(\vect{q})\quad \label{eqn:Hamiltonian_equation2}
 \end{align}
 (\ref{eqn:Hamiltonian_equation1}) and (\ref{eqn:Hamiltonian_equation2}) are called \textbf{Hamiltonian equations}
 
@@ -90,6 +97,13 @@ Or equivalently, we can take the total differentiation on both sides of (\ref{eq
 & = \pd{\Hcal}{\vect{p}}d\vect{p} + \pd{\Hcal}{\vect{q}} d\vect{q} + \pd{\Hcal}{t}dt
 \end{align*}
 Hence we can correspond the coefficients to get (\ref{eqn:Hamiltonian_equation1}) and (\ref{eqn:Hamiltonian_equation2}).
+
+By combining (\ref{eqn:Hamiltonian_equation1}) and (\ref{eqn:Hamiltonian_equation2}), we obtain another form of Hamiltonian equations:
+\begin{align}
+& \dot{\vect{q}} = M^{-1} \vect{p} \label{eqn:Hamiltonian_equation3}\\
+& \dot{\vect{p}} = - \nabla_{\vect{q}} U(\vect{q}) \label{eqn:Hamiltonian_equation4}
+\end{align}
+which will be uesd in the implementation of Hamiltonian Monte Carlo.
 
 \section{Hamiltonian Monte Carlo}
 
