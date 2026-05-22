@@ -107,4 +107,48 @@ which will be uesd in the implementation of Hamiltonian Monte Carlo.
 
 \section{Hamiltonian Monte Carlo}
 
+\subsection{Leapfrog integrator}
+The numerical approximation of Hamiltonian dynamics, which is a system of ODE: \ref{eqn:Hamiltonian_equation3}, \ref{eqn:Hamiltonian_equation4}, 
+can be obtained by integrators. Particularly, the leapfrog integrator is the most preferred. 
+
+\begin{align*}
+p_{t+\eps/2} &= p_t - \frac{\eps}{2} \nabla U(x_t) \quad \text{(kick)}\\
+x_{t+\eps} &= x_t + \eps M^{-1} p_{t+\eps/2} \quad \text{(drift)}\\
+p_{t+\eps} &= p_{t+\eps/2} - \frac{\eps}{2} \nabla U(x_{t+\eps}) \quad \text{(kick)}\\
+\end{align*}
+
+If we expand the above, we could get the approximate state: $(\hat x_{t+\eps}, \hat p_{t+\eps})$ at time $t+ \eps$ from time $t$:
+\begin{align*}
+x_{t+\eps} &= x_t + \eps M^{-1} p_t - \frac{\eps^2}{2} M^{-1}\nabla U(x_t)\\
+p_{t+\eps} &= p_t - \eps \nabla U(x_t) - \frac{\eps}{2}\Big(\nabla U(x_{t+\eps}) - \nabla U(x_t)\Big)\\
+&= p_t - \eps \nabla U(x_t) - \frac{\eps^2}{2} \nabla^2 U(x_t) M^{-1} p_t + O(\eps^3)
+\end{align*}
+This is consistent with second-order Taylor expansion:
+\begin{align*}
+x_{t+\eps} &= x_t + \eps M^{-1} p_t - \frac{\eps^2}{2} M^{-1} \nabla U(x_t) + O(\eps^3)\\
+p_{t+\eps} &= p_t - \eps \nabla U(x_t) - \frac{\eps^2}{2} \nabla^2 U(x_t) M^{-1} p_t + O(\eps^3)
+\end{align*}
+
+Since the energy is conserved in Hamiltonian dynamics, so it is natural to consider the Hamiltonian: $\Hcal(x, p) = C$ as a level set in phase space: $\R^d \times \R^d$, and the tangent space at state $(x_t, p_t)$ is naturally:
+\[\text{span}\Big\{\Big(\frac{dx}{dt}, \frac{dp}{dt}\Big)^\top\Big\} = \text{span}\Big\{\Big(M^{-1} p_t, - \nabla U(x_t)\Big)^\top\Big\}\]
+and the normal space is:
+\[\text{span}\Big\{\Big(\pd{\Hcal}{x}, \pd{\Hcal}{p})^\top\Big\} = \text{span}\Big\{\Big(\nabla U(x_t), M^{-1} p_t\Big)^\top\Big\}\]
+
+Consider starting from the current state $(x_t, p_t)$, we propose some tangent move: $\eps (M^{-1} p_t, - \nabla U(x_t))$, and the point being shot off the manifold:
+\[\Big(\tilde x_{t+\eps}, \tilde p_{t+\eps}\Big) = \Big(x_t + \eps M^{-1} p_t, p_t - \eps \nabla U(x_t)\Big)\]
+Note that the difference between $(\tilde x_{t+\eps}, \tilde p_{t+\eps})$ and the leapfrog solution of the state $(\hat x_{t+\eps}, \hat p_{t+\eps})$ at time $t + \eps$ is:
+\[\Delta = -\frac{\eps^2}{2}\Big(M^{-1} \nabla U(x_t), \nabla^2 U(x_t) M^{-1} p_t\Big)\]
+
+One question is: is this vector in the normal space of $(x_t, p_t)$. The answer is no in general. Because we need to enforce the condition:
+\[
+\Big(M^{-1} \nabla U(x_t), \nabla^2 U(x_t) M^{-1} p_t\Big)^\top = c \Big(\nabla U(x_t), M^{-1} p_t\Big)^\top 
+\]
+for some scalar $c$, which requires that $\nabla U(x_t)$ is the eigenvector of $M^{-1}$ and $M^{-1}p_t$ is the eigenvector of $\nabla^2 U(x_t)$ with the same eigenvalue $c$.
+
+However, in some special cases, that can happen. Consider the simple harmonic osillator with $M = m$ and spring constant $k = \frac1m$, so $U(x) = \frac{k}{2} x^2$, then in this case, $\Delta \propto (kx/m, kp/m) $ and the normal vector is $ \propto (kx, p/m)$, therefore by setting $c = 1/m = k$ the requirements can be satisfied.
+
+
+
+
+
 \end{document}
