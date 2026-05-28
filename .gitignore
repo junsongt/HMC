@@ -17,3 +17,5 @@
 *.synctex.gz
 *.coverage
 *.npz
+*.json
+__pycache__/
