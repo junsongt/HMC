@@ -18,4 +18,5 @@
 *.coverage
 *.npz
 *.json
+*.pdf
 __pycache__/
