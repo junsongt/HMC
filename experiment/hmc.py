@@ -18,7 +18,7 @@ import solver
 jax.config.update("jax_enable_x64", True)
 
 
-eps = 1e-1
+eps = 5e-1
 d = 1
 M = 5 * jnp.eye(d)  # mass matrix
 L = jnp.linalg.cholesky(M)
@@ -101,64 +101,18 @@ def leapfrog_integrate(s0, L):
     return final_xs, final_ps, final_Hs
 
 
-key, subkey1, subkey2 = jax.random.split(key, 3)
-x0 = jax.random.multivariate_normal(subkey1, mean=jnp.zeros(d), cov=Sigma)
-p0 = jax.random.multivariate_normal(subkey2, mean=jnp.zeros(d), cov=M)
+# key, subkey1, subkey2 = jax.random.split(key, 3)
+# x0 = jax.random.multivariate_normal(subkey1, mean=jnp.zeros(d), cov=Sigma)
+# p0 = jax.random.multivariate_normal(subkey2, mean=jnp.zeros(d), cov=M)
 
+x0 = jnp.array([1.846001])
+p0 = jnp.array([-1.1536046])
 print("initial state: ", jnp.concatenate([x0, p0]))
-
-# print(leapfrog((x0, p0)))
-# print(leapfrog(flip(leapfrog((x0, p0)))))
-# print(leapfrog((x0, p0), 5))
-
-L = 10
-xs, ps, hs = leapfrog_integrate((x0, p0), L)
-# Exact Hamiltonian contour
-lb, ub = np.min((xs, ps)), np.max((xs, ps))
-x_grid = np.linspace(lb - eps, ub + eps, 300)
-p_grid = np.linspace(lb - eps, ub + eps, 300)
-X, P = np.meshgrid(x_grid, p_grid)  # X, P has shape (300, 300)
-# Z expects both inputs has shape (300, 300, d), so that each input[i,j] has shape (d, )
-Z = jax.vmap(jax.vmap(Hamiltonian))(X[..., None], P[..., None])  # [..., None] = [:, :, None]: add one more dimension
-
-
-# Exact solution for comparison
-# t = np.linspace(0, eps * L, 500)
-t = eps * np.arange(L + 1)
-Sigma_inv_scalar = Sigma_inv.flatten()[0]
-M_inv_scalar = M_inv.flatten()[0]
-omega = jnp.sqrt(Sigma_inv_scalar * M_inv_scalar)
-x_exact = x0 * np.cos(omega * t) + (M_inv_scalar * p0 / omega) * np.sin(omega * t)
-p_exact = p0 * np.cos(omega * t) - (Sigma_inv_scalar * x0 / omega) * np.sin(omega * t)
-
-
-plt.figure(figsize=(7, 6))
-plt.contour(X, P, Z, levels=20)
-plt.plot(x_exact, p_exact, color="red", alpha=0.5, label="Exact Hamiltonian flow")
-plt.plot(xs, ps, color="blue", marker="o", markersize=1, alpha=0.3, label="Leapfrog")
-plt.scatter([x0], [p0], s=80, label="Start")
-plt.xlabel("x")
-plt.ylabel("p")
-plt.title("Exact flow vs leapfrog in phase space")
-plt.axis("equal")
-plt.legend()
-plt.show()
-
-leapfrog_solutions = jnp.hstack([xs, ps])
-analytic_solutions = jnp.hstack([x_exact.reshape(-1, 1), p_exact.reshape(-1, 1)])
-
-
-# print("leapfrog solutions to Hamiltonian equations: ", leapfrog_solutions)  # same as jnp.concatenate([xs, ps], axis=1)
-# print("Analytic solution to Hamiltonian equations: ", analytic_solutions)
-# print(
-#     "norms of difference of leapfrog and analytic solutions: ",
-#     jax.vmap(jnp.linalg.norm)(jnp.abs(leapfrog_solutions - analytic_solutions)),
-# )
 
 
 # manifold sampler on Hamiltonian
 tol = 1e-8
-nmax = 200
+nmax = 50
 
 
 def q_numeric(z):
@@ -178,11 +132,12 @@ def grad_q(z):
 
 @jax.jit
 def log_f(z):
-    Gz = grad_q(z)  # Jacobian of q, shape: n x m  = (dim_ambient, dim_constraint)
+    Gz = grad_q(z)
     return -jnp.log(jnp.linalg.norm(Gz))
 
 
 q_level = Hamiltonian(x0, p0)
+print("Hamiltonian energy level: ", q_level)
 
 
 def project_check(proj_obj, constraints) -> bool:
@@ -215,20 +170,6 @@ def rs_project(z, tz, q, q_level, gradient, nmax, tol, constraints=None):
 
 z0 = jnp.concatenate([x0, p0])
 tz0 = eps * jnp.concatenate([M_inv @ p0, grad_lp(x0)])
-print("tangent vector proposed:  ", tz0)
-z1, flag = rs_project(z0, tz0, q, q_level, grad_q, nmax, tol)
-print("at time eps, analytic solution: ", analytic_solutions[1])
-print("at time eps, leapfrog solution: ", leapfrog_solutions[1])
-print("at time eps, rs projected solution: ", z1, flag)
-
-x1 = z1[:d]
-p1 = z1[d:]
-print(jnp.concatenate([x1, p1]))
-tz1 = eps * jnp.concatenate([M_inv @ p1, grad_lp(x1)])
-print("tangent proposed: ", tz1)
-print(tz1 @ grad_q(z1))
-z2, flag = rs_project(z1, tz1, q, q_level, grad_q, nmax, tol)
-print("at time 2eps, rs projected solution: ", z2, flag)
 
 
 @jit(static_argnames=["L"])
@@ -238,7 +179,6 @@ def rs_integrate(s0, L):
     ps = jnp.empty(shape=(L + 1, d))
     xs = xs.at[0].set(x0)
     ps = ps.at[0].set(p0)
-
     Hs = jnp.empty(shape=(L + 1,))
     Hs = Hs.at[0].set(Hamiltonian(x0, p0))
 
@@ -265,14 +205,96 @@ def rs_integrate(s0, L):
     return final_xs, final_ps, final_Hs, outs
 
 
-xs, ps, hs, flags = rs_integrate((x0, p0), L)
-print("Hamiltonian by rs: ", hs)
-print("projection flags: ", flags)
-rs_solutions = jnp.hstack([xs, ps])
+L = 20
 
-print("analytic solution: ", analytic_solutions)
-print("leapfrog solution: ", leapfrog_solutions)
-print("rs projected solution: ", rs_solutions)
+# Analytic solution of Hamiltonian equations
+# t = np.linspace(0, eps * L, 500)
+t = eps * np.arange(L + 1)
+Sigma_inv_scalar = Sigma_inv.flatten()[0]
+M_inv_scalar = M_inv.flatten()[0]
+omega = jnp.sqrt(Sigma_inv_scalar * M_inv_scalar)
+x_exact = x0 * np.cos(omega * t) + (M_inv_scalar * p0 / omega) * np.sin(omega * t)
+p_exact = p0 * np.cos(omega * t) - (Sigma_inv_scalar * x0 / omega) * np.sin(omega * t)
+analytic_solutions = jnp.hstack([x_exact.reshape(-1, 1), p_exact.reshape(-1, 1)])
+print(
+    "H(exact) - H(x0, p0): ",
+    jax.vmap(Hamiltonian, in_axes=(0, 0))(x_exact.reshape(-1, 1), p_exact.reshape(-1, 1)) - q_level,
+)
+
+
+# leapfrog solutions
+x_lf, p_lf, h_lf = leapfrog_integrate((x0, p0), L)
+leapfrog_solutions = jnp.hstack([x_lf, p_lf])  # same as jnp.concatenate([xs, ps], axis=1)
+
+# RATTLE-SHAKE solutions
+x_rs, p_rs, h_rs, flags = rs_integrate((x0, p0), L)
+print("projection flags: ", flags)
+rs_solutions = jnp.hstack([x_rs, p_rs])
+
+# print out the solutions for Hamitonian equations
+# print("analytic solution: ", analytic_solutions)
+# print("leapfrog solution: ", leapfrog_solutions)
+# print("RATTLE-SHAKE solution: ", rs_solutions)
+
+# check the norm of solution errors
+diff_lf = jax.vmap(jnp.linalg.norm)(jnp.abs(leapfrog_solutions - analytic_solutions))
+diff_rs = jax.vmap(jnp.linalg.norm)(jnp.abs(rs_solutions - analytic_solutions))
+# print("norms of difference of leapfrog and analytic solutions: ", diff_lf)
+# print("norms of difference of RATTLE-SHAKE and analytic solutions: ", diff_rs)
+
+
+# check the Hamiltonian errors
+# print("H_lf - H0: ", h_lf - q_level)
+# print("H_rs - H0: ", h_rs - q_level)
+
+
+# Exact Hamiltonian contour
+xlb, xub = np.min((x_lf, x_rs)), np.max((x_lf, x_rs))
+plb, pub = np.min((p_lf, p_rs)), np.max((p_lf, p_rs))
+x_grid = np.linspace(xlb - eps, xub + eps, 300)
+p_grid = np.linspace(plb - eps, pub + eps, 300)
+X, P = np.meshgrid(x_grid, p_grid)  # X, P has shape (300, 300)
+# Z expects both inputs has shape (300, 300, d), so that each input[i,j] has shape (d, )
+Z = jax.vmap(jax.vmap(Hamiltonian))(X[..., None], P[..., None])  # [..., None] = [:, :, None]: add one more dimension
+
+
+# plot the Hamiltonian flow on the contours
+plt.figure(figsize=(7, 6))
+plt.contour(X, P, Z, levels=20)
+plt.plot(x_exact, p_exact, color="red", alpha=0.5, label="Exact Hamiltonian flow")
+plt.plot(x_lf, p_lf, color="blue", marker="o", markersize=2, alpha=0.3, label="Leapfrog")
+plt.plot(x_rs, p_rs, color="green", marker="o", markersize=2, alpha=0.3, label="RATTLE-SHAKE")
+plt.scatter([x0], [p0], s=50, label="Start")
+plt.xlabel("x")
+plt.ylabel("p")
+plt.title("Exact flow vs leapfrog vs RATTLE-SHAKE in phase space")
+plt.axis("equal")
+plt.legend(loc="best")
+plt.show()
+
+# plot the Hamiltonian error for leapfrog and RATTLE-SHAKE
+plt.figure(figsize=(7, 6))
+plt.plot(t, h_lf - q_level, color="red", alpha=0.8, label="leapfrog")
+plt.plot(t, h_rs - q_level, color="blue", alpha=0.8, label="RATTLE-SHAKE")
+plt.xlabel("time")
+plt.ylabel("H(x, p) - H(x0, p0)")
+plt.title("Hamiltonian error")
+# plt.axis("equal")
+plt.legend(loc="best")
+plt.show()
+
+
+# plot the norm of solution error for leapfrog and RATTLE-SHAKE
+plt.figure(figsize=(7, 6))
+plt.plot(t, diff_lf, color="red", alpha=0.8, label="leapfrog")
+plt.plot(t, diff_rs, color="blue", alpha=0.8, label="RATTLE-SHAKE")
+plt.xlabel("time")
+plt.ylabel(r"$|(\hat{x_t}, \hat{p_t}) - (x_t^*, p_t^*)|$")
+plt.title("Norm of solution error")
+# plt.axis("equal")
+plt.legend(loc="best")
+plt.show()
+
 
 # # Hamiltonian error over time
 # plt.figure(figsize=(7, 4))
